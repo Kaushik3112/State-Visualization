@@ -18,7 +18,7 @@ def c_list_gen(c_n, n, v_list):
     c_list[n] = c_n
     for i in range(n):
         c_list[0, n-1-i] = 2*np.sqrt(c_list[0, n-i]*v_list[0, n-1-i])
-    
+
     return c_list
 
 
