@@ -33,7 +33,7 @@ def Ham_gen(t, n, w_0, w_list, v_list, OmegaX, OmegaY, OmegaZ):
 
 
 @njit
-def propagation(v_list, c_list, w_list, M0, technique):
+def propagation(v_list, c_list, w_list, M0, technique, pulse):
 
     if technique == "Unitary":
         A = 0     # place holder
@@ -42,3 +42,15 @@ def propagation(v_list, c_list, w_list, M0, technique):
         A = 1
 
     return A
+
+# @njit
+# def multi_pulse_prop(v_list, c_list, w_list, M0, technqiue, pulse_list):
+
+#     I = np.eye(3, dtype = np.complex64)
+#     A = I
+#     for pulse in pulse_list:
+#         M = propagation(v_list, c_list, w_list, M0, technqiue, pulse)
+#         A = M@A
+
+
+#     return A
