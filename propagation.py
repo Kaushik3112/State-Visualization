@@ -24,6 +24,7 @@ w_n = v_n/4
 t = np.pi/(2*w_n)
 t_list = np.linspace(0, t, disc)
 
+
 @njit
 def cossingen(t, w_list, j, n):
     temp_var = 1
@@ -37,7 +38,6 @@ def cossingen(t, w_list, j, n):
         temp_var = 2*temp_var*np.sin(w_list[j]*t)
 
     return temp_var
-
 
 @njit
 def v_gen(t, w_list, v_list, n):
@@ -62,6 +62,13 @@ def ode_function(t, v, n, w_0, w_list, v_list, OmegaX, OmegaY, OmegaZ):
 @njit
 def propagation(v_list, w_list, M0, technique, pulse, t_range, disc, n):
 
+    if pulse == "pi":
+        t = t*2
+        t_range = np.linspace(0, t, 2*disc)
+    elif pulse == "pi/4":
+        t = t/2
+        t_range = np.linspace(0, t, disc/2)
+        
     if technique == "Unitary":
         U = np.eye(3, dtype=np.complex64)
         for i in range(disc):
