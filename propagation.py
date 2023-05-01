@@ -1,5 +1,8 @@
 import numpy as np
 from numba import njit
+from scipy.integrate import solve_ivp
+from initialization import v_list_gen, c_list_gen, w_list_gen
+
 
 OmegaX =np.array([[0, 0, 0],
                   [0, 0, -1],
@@ -12,6 +15,14 @@ OmegaY =np.array([[0, 0, 1],
 OmegaZ =np.array([[0, -1, 0],
                   [1, 0, 0],
                   [0, 0, 0]], dtype=np.complex64)
+
+
+disc = 128000
+n = 6
+v_n = 1500/2
+w_n = v_n/4
+t = np.pi/(2*w_n)
+t_list = np.linspace(0, t, disc)
 
 @njit
 def cossingen(t, w_list, j, n):
@@ -42,6 +53,11 @@ def v_gen(t, w_list, v_list, n):
 def Ham_gen(t, n, w_0, w_list, v_list, OmegaX, OmegaY, OmegaZ):
     return (w_0*OmegaZ + w_list[0]*OmegaX + v_gen(t, w_list, v_list, n)*OmegaY)
 
+@njit
+def ode_function(t, v, n, w_0, w_list, v_list, OmegaX, OmegaY, OmegaZ):
+    Ham = Ham_gen(t, n, w_0, w_list, v_list, OmegaX, OmegaY, OmegaZ)
+    vout = Ham@v
+    return vout
 
 @njit
 def propagation(v_list, w_list, M0, technique, pulse, t_range, disc, n):
@@ -53,9 +69,6 @@ def propagation(v_list, w_list, M0, technique, pulse, t_range, disc, n):
             U = np.expm(temp*(t_range[1]-t_range[0]))@U
 
         A = U@M0
-
-    elif technique == "ODE44":
-        
 
     return A
 
