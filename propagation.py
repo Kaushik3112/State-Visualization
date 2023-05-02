@@ -1,6 +1,6 @@
 import numpy as np
 from numba import njit
-from scipy.integrate import solve_ivp
+from scipy.linalg import expm
 from initialization import v_list_gen, c_list_gen, w_list_gen
 
 
@@ -17,7 +17,7 @@ OmegaZ =np.array([[0, -1, 0],
                   [0, 0, 0]], dtype=np.complex64)
 
 
-disc = 128000
+disc = 1280
 n = 6
 v_n = 1500/2
 w_n = v_n/4
@@ -26,16 +26,16 @@ t_list = np.linspace(0, t, disc)
 
 
 @njit
-def cossingen(t, w_list, j, n):
+def cossingen(t, v_list, j, n):
     temp_var = 1
 
-    if j > 1:
-        for i in range(j-1):
-            temp_var = 2*temp_var*np.cos(w_list[i]*t)
-    elif j == n:
-        temp_var = 2*temp_var*np.cos(w_list[j]*t)
+    if j > 0:
+        for i in range(j):
+            temp_var = 2*temp_var*np.cos(v_list[0, i]*t)
+    if j == (n-1):
+        temp_var = 2*temp_var*np.cos(v_list[0, j]*t)
     else:
-        temp_var = 2*temp_var*np.sin(w_list[j]*t)
+        temp_var = 2*temp_var*np.sin(v_list[0, j]*t)
 
     return temp_var
 
@@ -44,36 +44,39 @@ def v_gen(t, w_list, v_list, n):
     temp_var = 0
 
     for i in range(n):
-        temp_var = temp_var + w_list[i+1]*cossingen(t, w_list, i, n)
+        temp_var = temp_var + w_list[0,i+1]*cossingen(t, v_list, i, n)
 
     return temp_var
 
 
 @njit
 def Ham_gen(t, n, w_0, w_list, v_list, OmegaX, OmegaY, OmegaZ):
-    return (w_0*OmegaZ + w_list[0]*OmegaX + v_gen(t, w_list, v_list, n)*OmegaY)
+    Ham = (w_0*OmegaZ + w_list[0,0]*OmegaX + v_gen(t, w_list, v_list, n)*OmegaY)
+    return Ham
 
 @njit
-def ode_function(t, v, n, w_0, w_list, v_list, OmegaX, OmegaY, OmegaZ):
-    Ham = Ham_gen(t, n, w_0, w_list, v_list, OmegaX, OmegaY, OmegaZ)
-    vout = Ham@v
-    return vout
-
-@njit
-def propagation(v_list, w_list, M0, technique, pulse, t_range, disc, n):
-
+def t_mod(pulse, t, t_range):
     if pulse == "pi":
         t = t*2
-        t_range = np.linspace(0, t, 2*disc)
-    elif pulse == "pi/4":
+        t_range = t_range*2
+    elif pulse =="pi/4":
         t = t/2
-        t_range = np.linspace(0, t, disc/2)
-        
+        t_range = t_range/2
+    else:
+        pass
+    
+    return t, t_range
+
+# @njit
+def propagation(v_list, w_0, w_list, M0, technique, pulse, t_range, disc, n, t):
+
+    t, t_range = t_mod(pulse, t, t_range)
+
     if technique == "Unitary":
         U = np.eye(3, dtype=np.complex64)
         for i in range(disc):
-            temp = Ham_gen(t_range[i], n, w_list[0], w_list, v_list, OmegaX, OmegaY, OmegaZ)
-            U = np.expm(temp*(t_range[1]-t_range[0]))@U
+            temp = Ham_gen(t_range[i], n, w_0, w_list, v_list, OmegaX, OmegaY, OmegaZ)
+            U = expm(temp*(t_range[1]-t_range[0]))@U
 
         A = U@M0
 

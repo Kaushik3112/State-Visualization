@@ -15,7 +15,7 @@ def v_list_gen(v_n, n):
 @njit
 def c_list_gen(c_n, n, v_list):
     c_list = np.zeros((1, n+1))
-    c_list[n] = c_n
+    c_list[0, n] = c_n
     for i in range(n):
         c_list[0, n-1-i] = 2*np.sqrt(c_list[0, n-i]*v_list[0, n-1-i])
 
@@ -25,8 +25,8 @@ def c_list_gen(c_n, n, v_list):
 @njit
 def w_list_gen(w_n, n, v_list, c_list):
     w_list = np.zeros((1, n+1))
-    w_list[n] = w_n
+    w_list[0, n] = w_n
     for i in range(n):
-        w_list[i] = v_list[i] - c_list[i+1]
+        w_list[0, i] = v_list[0, i] - c_list[0, i+1]
 
     return w_list
