@@ -1,6 +1,6 @@
 import numpy as np
 from initialization import v_list_gen, c_list_gen, w_list_gen
-from propagation import propagation, multi_pulse_prop, v_gen, cossingen
+from propagation import propagation, propagation_w_state
 import matplotlib.pyplot as plt
 from argparse import ArgumentParser
 import sys
@@ -38,9 +38,6 @@ if __name__ =="__main__":
     
     n = sys.argv[0]
 
-# v_n = 1500/2
-# w_n = v_n/4
-# c_n = v_n/100
     v_n, w_n, c_n = initial(n)
     n_pieces = 100
     nu_list = v_list_gen(v_n, n)
@@ -51,19 +48,33 @@ if __name__ =="__main__":
     disc= 1280
     t_range = np.linspace(0, t_pulse, disc)
     w_list = w_list
-
+    
     X3W= np.zeros(n_pieces)
     X2W= np.zeros(n_pieces)
     X1W= np.zeros(n_pieces)
 
     for i in range(n_pieces):
         print(f"[{i}/{n_pieces}]", end ="\r")
-        X = propagation(v_list=nu_list, w_0=w_0[i], w_list=w_list, M0=M0,
-                        technique="Unitary", pulse="pi/2", t_range=t_range,
-                        disc=disc, n=n, t=t_pulse)
+
+        if sys.argv[1] is True:
+            X, state_list = propagation_w_state(v_list=nu_list, w_0=w_0[i], w_list=w_list, M0=M0,
+                                                technique="Unitary", pulse="pi/2", t_range=t_range,
+                                                disc=disc, n=n, t=t_pulse)
+            
+        else:
+            X = propagation(v_list=nu_list, w_0=w_0[i], w_list=w_list, M0=M0,
+                            technique="Unitary", pulse="pi/2", t_range=t_range,
+                            disc=disc, n=n, t=t_pulse)
         X1W[i] = np.abs(X[0,0])
         X2W[i] = np.abs(X[1,0])
         X3W[i] = np.abs(X[2,0])
-
-    plt.plot(w_0, X1W)
-    plt.show()
+    
+    if sys.argv[2] is not None:
+        if sys.argv[1] is True:
+            np.savez(sys.argv[2],
+                    X_final=X1W, Y_final=X2W,
+                    Z_final=X3W, states=state_list)
+        else:
+            np.savez(sys.argv[2],
+                    X_final=X1W, Y_final=X2W,
+                    Z_final=X3W)
