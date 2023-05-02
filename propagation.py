@@ -82,6 +82,25 @@ def propagation(v_list, w_0, w_list, M0, technique, pulse, t_range, disc, n, t):
 
     return A
 
+
+def propagation_w_state(v_list, w_0, w_list, M0, technique, pulse, t_range, disc, n, t):
+
+    t, t_range = t_mod(pulse, t, t_range)
+    state_list = []
+    state = M0
+
+    if technique == "Unitary":
+        U = np.eye(3, dtype=np.complex64)
+        for i in range(disc):
+            temp = Ham_gen(t_range[i], n, w_0, w_list, v_list, OmegaX, OmegaY, OmegaZ)
+            U = expm(temp*(t_range[1]-t_range[0]))@U
+            state = U@M0
+            state_list.append(state)
+
+        A = U@M0
+
+    return A, state_list
+
 @njit
 def multi_pulse_prop(v_list, c_list, w_list, M0, technqiue, pulse_list):
 
