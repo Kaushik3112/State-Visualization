@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(prog="state visualization",
                             description="state visualization")
     parser.add_argument("-n", "--number", type=int, default=6)
-    parser.add_argument("-s", "--state_req", type=bool, default=False)
+    parser.add_argument("-s", "--state-req", type=bool, default=False)
     parser.add_argument("-o", "--output", type=str)
 
     args = parser.parse_args()
@@ -56,30 +56,42 @@ if __name__ == "__main__":
     X2W = np.zeros(n_pieces)
     X1W = np.zeros(n_pieces)
 
-    for i in range(n_pieces):
-        print(f"[{i}/{n_pieces}]", end="\r")
-
-        if sys.argv[1] is True:
-            X, state_list = propagation_w_state(v_list=nu_list, w_0=w_0[i],
+    if args.state_req is True:
+        for i in range(n_pieces):
+            print(f"[{i}/{n_pieces}]", end="\r")
+            if i == 50:
+                X, state_list = propagation_w_state(v_list=nu_list, w_0=w_0[i],
                                                 w_list=w_list, M0=M0,
                                                 technique="Unitary",
                                                 pulse="pi/2", t_range=t_range,
                                                 disc=disc, n=n, t=t_pulse)
-
-        else:
+            else:
+                X = propagation(v_list=nu_list, w_0=w_0[i], w_list=w_list, M0=M0,
+                            technique="Unitary", pulse="pi/2", t_range=t_range,
+                            disc=disc, n=n, t=t_pulse)
+            
+            X1W[i] = np.abs(X[0, 0])
+            X2W[i] = np.abs(X[1, 0])
+            X3W[i] = np.abs(X[2, 0])
+    
+    else:
+        for i in range(n_pieces):
+            print(f"[{i}/{n_pieces}]", end="\r")
             X = propagation(v_list=nu_list, w_0=w_0[i], w_list=w_list, M0=M0,
                             technique="Unitary", pulse="pi/2", t_range=t_range,
                             disc=disc, n=n, t=t_pulse)
-        X1W[i] = np.abs(X[0, 0])
-        X2W[i] = np.abs(X[1, 0])
-        X3W[i] = np.abs(X[2, 0])
+            X1W[i] = np.abs(X[0, 0])
+            X2W[i] = np.abs(X[1, 0])
+            X3W[i] = np.abs(X[2, 0])
+
+    print(state_list.shape)
 
     if args.output is not None:
-        if sys.argv[1] is True:
+        if args.state_req is True:
             np.savez(args.output, w_range=w_0,
                      X_final=X1W, Y_final=X2W,
                      Z_final=X3W, states=state_list)
         else:
-            np.savez(sys.argv[2], w_range=w_0,
+            np.savez(args.output, w_range=w_0,
                      X_final=X1W, Y_final=X2W,
                      Z_final=X3W)
