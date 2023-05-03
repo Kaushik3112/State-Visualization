@@ -1,6 +1,6 @@
 import numpy as np
 from initialization import v_list_gen, c_list_gen, w_list_gen
-from propagation import propagation, propagation_w_state
+from propagation import propagation, propagation_w_state, v_gen
 from argparse import ArgumentParser
 import sys
 
@@ -56,6 +56,13 @@ if __name__ == "__main__":
     X2W = np.zeros(n_pieces)
     X1W = np.zeros(n_pieces)
 
+    PulseX = np.zeros_like(t_range)
+    PulseY = np.zeros_like(t_range)
+
+    for i in range(disc):
+        PulseY[i] = v_gen(t_range[i], w_list, nu_list, n)
+        PulseX[i] = w_list[0, 0]
+
     if args.state_req is True:
         for i in range(n_pieces):
             print(f"[{i}/{n_pieces}]", end="\r")
@@ -90,8 +97,11 @@ if __name__ == "__main__":
         if args.state_req is True:
             np.savez(args.output, w_range=w_0,
                      X_final=X1W, Y_final=X2W,
-                     Z_final=X3W, states=state_list)
+                     Z_final=X3W, times=t_range,
+                     x_drive=PulseX, y_drive=PulseY,
+                     states=state_list)
         else:
             np.savez(args.output, w_range=w_0,
                      X_final=X1W, Y_final=X2W,
-                     Z_final=X3W)
+                     Z_final=X3W, times=t_range,
+                     x_drive=PulseX, y_drive=PulseY)
