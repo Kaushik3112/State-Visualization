@@ -3,11 +3,17 @@ import numpy as np
 from pylab import *
 from qutip import *
 from matplotlib import cm
+import math as m
 import imageio
 
 def state_converter(state_list):
-    thetas = np.arctan((np.sqrt(state_list[0]*state_list[0] + state_list[1]*state_list[1]))/state_list[2])
-    phis = np.arctan(state_list[1]/state_list[0])
+    # thetas = np.arctan((np.sqrt(state_list[0]*state_list[0] + state_list[1]*state_list[1]))/state_list[2])
+    # phis = np.arctan(state_list[1]/state_list[0])
+    thetas = np.zeros_like(state_list[0], dtype=np.complex64)
+    phis = np.zeros_like(thetas, dtype=np.complex64)
+    for i in range(len(thetas)):
+        thetas[i] = m.atan2(state_list[2, i], m.sqrt(state_list[0, i]*state_list[0, i] + state_list[1, i]*state_list[1, i]))
+        phis[i] = m.atan2(state_list[1, i], state_list[0, i])
     phis[np.isnan(phis)] = 0
 
     states = []

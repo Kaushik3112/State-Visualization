@@ -91,7 +91,7 @@ def propagation_w_state(v_list, w_0, w_list, M0,
                         technique, pulse, t_range, disc, n, t):
 
     t, t_range = t_mod(pulse, t, t_range)
-    state_list = []
+    state_list = M0
     state = M0
 
     if technique == "Unitary":
@@ -101,7 +101,7 @@ def propagation_w_state(v_list, w_0, w_list, M0,
                            v_list, OmegaX, OmegaY, OmegaZ)
             U = expm(temp*(t_range[1]-t_range[0]))@U
             state = U@M0
-            state_list.append(state)
+            state_list = np.append(state_list, state, axis=1)
 
         A = U@M0
 
